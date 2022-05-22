@@ -1,19 +1,13 @@
+from numpy import size
+
+
 class game: 
-    def __init__(self):
-        self.board = [  [1, 2, 2, 1], 
-                        [1, 1, 2, 0], 
-                        [2, 2, 2, 2], 
-                        [3, 2, 3, 2]    ]
-
-
-    """------------------------------------------------------------------"""
-
-    def getLegalActions(self): 
+    def getLegalActions(self, board): 
         # get possible action for the current board
         legalActions = []
         f1, f2 = True, True
         # for col
-        t = self.getTranspose(self.board)
+        t = self.getTranspose(board)
         for i in range(4):
             col = [s for s in t[i] if s != 0]
             if len(col) == 4:
@@ -29,7 +23,7 @@ class game:
             legalActions.append(1)
         # for row
         for i in range(4):
-            row = [s for s in self.board[i] if s != 0]
+            row = [s for s in board[i] if s != 0]
             if len(row) == 4:
                 f1 = False
                 for j in range(3):
@@ -38,7 +32,7 @@ class game:
                         break
             if not f1:
                 break
-        if f1:
+        if not f1:
             legalActions.append(2)
             legalActions.append(3)
         
@@ -46,11 +40,12 @@ class game:
     
     """------------------------------------------------------------------"""
 
-    def getNextState(self, action):
+    def generateNextState(self, _board, action):
         # get the board after the given action
         # up, down, left, right -> 0, 1, 2, 3
-        if   action == 0:
-            t = self.getTranspose(self.board)
+        board = [ row[:] for row in _board ]
+        if action == 0:
+            t = self.getTranspose(board)
             for i in range(4):
                 row = [s for s in t[i] if s != 0]
                 # print(row, end="->")
@@ -70,15 +65,15 @@ class game:
                             mergeRow.append(row[j + 1])
                     j += 1
                 if len(row) == 1:
-                    mergeRow.insert(row[-1])
+                    mergeRow.insert(0, row[-1])
                 # print(mergeRow, end="->")
                 while len(mergeRow) < 4:
                     mergeRow.append(0)
                 # print(mergeRow)
                 t[i] = mergeRow
-            self.board = self.getTranspose(t)
+            board = self.getTranspose(t)
         elif action == 1:
-            t = self.getTranspose(self.board)
+            t = self.getTranspose(board)
             for i in range(4):
                 row = [s for s in t[i] if s != 0]
                 # print(row, end="->")
@@ -104,10 +99,10 @@ class game:
                     mergeRow.insert(0, 0)
                 # print(mergeRow)
                 t[i] = mergeRow
-            self.board = self.getTranspose(t)
+            board = self.getTranspose(t)
         elif action == 2:
             for i in range(4):
-                row = [s for s in self.board[i] if s != 0]
+                row = [s for s in board[i] if s != 0]
                 # print(row, end="->")
                 mergeRow = []
                 j = 0
@@ -125,15 +120,15 @@ class game:
                             mergeRow.append(row[j + 1])
                     j += 1
                 if len(row) == 1:
-                    mergeRow.insert(row[-1])
+                    mergeRow.insert(0, row[-1])
                 # print(mergeRow, end="->")
                 while len(mergeRow) < 4:
                     mergeRow.append(0)
                 # print(mergeRow)
-                self.board[i] = mergeRow
+                board[i] = mergeRow
         else:
             for i in range(4):
-                row = [s for s in self.board[i] if s != 0]
+                row = [s for s in board[i] if s != 0]
                 # print(row, end="->")
                 mergeRow = []
                 j = len(row) - 1
@@ -156,46 +151,54 @@ class game:
                 while len(mergeRow) < 4:
                     mergeRow.insert(0, 0)
                 # print(mergeRow)
-                self.board[i] = mergeRow
+                board[i] = mergeRow
+        
+        return board
 
     """------------------------------------------------------------------"""
 
-    def getScore(self):
+    def getScore(self, board):
         # count the score of current board
         score = 0
         for i in range(4):
             for j in range(4):
-                count += self.board[i][j]
+                score += board[i][j]
         return score
 
     """------------------------------------------------------------------"""
 
-    def countEmpty(self):
+    def countEmpty(self, board):
         # count how many squares are empty
         count = 0
         for i in range(4):
             for j in range(4):
-                if self.board[i][j] == 0:
+                if board[i][j] == 0:
                     count += 1
         return count
 
     """------------------------------------------------------------------"""
 
-    def countEdges(self):
+    def countEdges(self, board):
         # count how many big number (>= 512) are on the edge
         count = 0
         for i in range(4):
             for j in range(4):
-                if self.board[i][j] >= 512:
+                if board[i][j] >= 512:
                     if i == 0 or i == 4 or j == 0 or j == 4:
                         count += 1
         return count
 
     """------------------------------------------------------------------"""
 
-    def countMerges(self):
+    def countMerges(self, board):
         # count there are how many potential merge
-        pass
+        count = 0
+        origin = self.countEmpty(board)
+        movedBoards = [ self.generateNextState(board, i) for i in range(4) ]
+
+        for i in range(4):
+            count += (self.countEmpty(movedBoards[i]) - origin)
+        return count / 2
 
     """------------------------------------------------------------------"""
 
@@ -212,13 +215,13 @@ class game:
 
     """------------------------------------------------------------------"""
     
-    def counteMonotonic(self):
+    def countMonotonic(self, board):
         # count how many rows and cols are monotonic
         count = 0
         # for rows
         for i in range(4):
             s1 = set()
-            temp = [s for s in self.board[i] if s != 0]
+            temp = [s for s in board[i] if s != 0]
             for j in range(len(temp) - 1):
                 if temp[j] < temp[j + 1]:
                     s1.add(False)
@@ -228,7 +231,7 @@ class game:
                 count += 1
 
         # for cols
-        t = self.getTranspose(self.board)
+        t = self.getTranspose(board)
         for i in range(4):
             s2 = set()
             temp = [s for s in t[i] if s != 0]
@@ -250,5 +253,34 @@ class game:
             for j in range(4):
                 print(board[i][j], end=" ")
             print()
+
+    """------------------------------------------------------------------"""
+
+    def getPossibleStates(self, board, action):
+        # get possible states for the action
+        possibleStates = []
+        movedState = self.generateNextState(board, action)
+        numEmpty = self.countEmpty(movedState)
+
+        for i in range(4):
+            for j in range(4):
+                if movedState[i][j] == 0:
+                    copyBoard = [row[:] for row in movedState]
+                    copyBoard2 = [row[:] for row in movedState]
+                    copyBoard[i][j] = 4
+                    possibleStates.append([copyBoard, (1 / numEmpty) * 0.1])
+                    copyBoard2[i][j] = 2
+                    possibleStates.append([copyBoard2, (1 / numEmpty) * 0.9])
+
+        return possibleStates
+
+    """------------------------------------------------------------------"""
+
+    def isLose(self, board):
+        arr = self.getLegalActions(board)
+        if len(arr) == 0:
+            return True
+        else:
+            return False
 
 
