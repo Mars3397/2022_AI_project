@@ -1,11 +1,45 @@
 import random
 
-gameDepth = 3
+from game import game
+
+gameDepth = 2
+
+def _expectimax(currentDepth, gameState, board, action, possibility):
+    # return the evaluation value when reach the end state or the deepest depth
+    if gameState.isLose(board) or currentDepth > gameDepth:
+        evaluateBoard = [ row[:] for row in board ]
+        return evaluationFunction(gameState, evaluateBoard, action, possibility)
+
+    # store the following action scores of each actions 
+    # -> apply max or min according to the agent of the level
+    actionScores = []
+    # get and store legal actions
+    legalActions = gameState.getLegalActions(board)
+
+    for a in legalActions:
+        # extend the actions to the next state
+        possibleStates = gameState.getPossibleStates(board, a)
+        each = []
+        for possibleState in possibleStates:
+            nextState = [ row[:] for row in possibleState[0] ]
+            each.append(_expectimax(currentDepth + 1, gameState, nextState, a, possibleState[1]))
+        actionScores.append(max(each))
+        # nextBoard = gameState.generateNextState(board, action)
+        # actionScores.append(expectimax(currentDepth + 1, gameState, nextBoard))
+
+
+    # return max action score
+    if currentDepth == 1:
+        return actionScores
+    else:
+        return max(actionScores)
+        # return float(sum(actionScores) / len(actionScores))
 
 def expectimax(currentDepth, gameState, board, possibility):
     # return the evaluation value when reach the end state or the deepest depth
     if gameState.isLose(board) or currentDepth > gameDepth:
-        return evaluationFunction(gameState, board, possibility)
+        evaluateBoard = [ row[:] for row in board ]
+        return evaluationFunction(gameState, evaluateBoard, action, possibility)
 
     # store the following action scores of each actions 
     # -> apply max or min according to the agent of the level
@@ -19,8 +53,11 @@ def expectimax(currentDepth, gameState, board, possibility):
         each = []
         for possibleState in possibleStates:
             nextState = [ row[:] for row in possibleState[0] ]
-            each.append(expectimax(currentDepth + 1, gameState, nextState, possibility * possibleState[1]))
+            each.append(_expectimax(currentDepth + 1, gameState, nextState, action, possibleState[1]))
         actionScores.append(max(each))
+        # nextBoard = gameState.generateNextState(board, action)
+        # actionScores.append(expectimax(currentDepth + 1, gameState, nextBoard))
+
 
     # return max action score
     if currentDepth == 1:
@@ -36,6 +73,7 @@ def getAction(gameState, board):
     # expectimax (depth, gameState) -> perform expectimax Search
     # which return the scores of following actions
     actionScores = expectimax(1, gameState, board, 1)
+    print(actionScores)
 
     # Pick randomly among the best action score
     maxActionScore = max(actionScores)
@@ -45,7 +83,7 @@ def getAction(gameState, board):
 
     return legalActions[chosenIndex]
 
-def evaluationFunction (gameState, board, possibility): 
+def evaluationFunction (gameState, board, action, possibility): 
     """
     bonus : 
         1. "empty squres"
@@ -58,13 +96,12 @@ def evaluationFunction (gameState, board, possibility):
     90% will generate 2, 10% will generate 4
     每一次移動產生的新數字，會在空格的空格隨機產生，所以就會有期望值
     """
+    nextBoard = gameState.generateNextState(board, action)
+    countEmpty = gameState.countEmpty(nextBoard) - gameState.countEmpty(board)
+    countEdges = gameState.countEdges(nextBoard) - gameState.countEdges(board)
+    countMerges = gameState.countMergeScore(board, action)
+    countMonotonic = gameState.countMonotonic(nextBoard) - gameState.countMonotonic(board)
 
-    currentScore = gameState.getScore(board) * 10
-    bonus_1 = gameState.countEmpty(board) * 5
-    bonus_2 = gameState.countEdges(board) * 3
-    bouns_3 = gameState.countMerges(board) * 3
-    bouns_4 = gameState.countMonotonic(board) * 8
+    evaluateValue = (countEmpty + countEdges + countMerges + countMonotonic)
 
-    evaluateValue = (currentScore + bonus_1 + bonus_2 + bouns_3 + bouns_4)
-
-    return evaluateValue * possibility
+    return evaluateValue

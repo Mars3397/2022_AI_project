@@ -19,8 +19,10 @@ class game:
             if not f2:
                 break
         if f2:
-            legalActions.append(0)
-            legalActions.append(1)
+            if self.generateNextState(board, 0) != board:
+                legalActions.append(0)
+            if self.generateNextState(board, 1) != board:
+                legalActions.append(1)
         # for row
         for i in range(4):
             row = [s for s in board[i] if s != 0]
@@ -32,9 +34,11 @@ class game:
                         break
             if not f1:
                 break
-        if not f1:
-            legalActions.append(2)
-            legalActions.append(3)
+        if f1:
+            if self.generateNextState(board, 2) != board:
+                legalActions.append(2)
+            if self.generateNextState(board, 3) != board:
+                legalActions.append(3)
         
         return legalActions
     
@@ -190,15 +194,41 @@ class game:
 
     """------------------------------------------------------------------"""
 
-    def countMerges(self, board):
+    def countMergeScore(self, board, action):
         # count there are how many potential merge
         count = 0
-        origin = self.countEmpty(board)
-        movedBoards = [ self.generateNextState(board, i) for i in range(4) ]
-
-        for i in range(4):
-            count += (self.countEmpty(movedBoards[i]) - origin)
-        return count / 2
+        # for row
+        if action == 2 or action == 3:
+            for i in range(4):
+                for j in range(3):
+                    f = False
+                    for k in range(j + 1, 4):
+                        if board[i][j] == 0:
+                            break
+                        elif board[i][j + 1] == 0:
+                            continue
+                        elif board[i][j] == board[i][k]:
+                            f = True
+                            break
+                    if f: 
+                        count += board[i][j]
+            return count
+        # for col
+        if action == 0 or action == 1:
+            for i in range(4):
+                for j in range(3):
+                    f = False
+                    for k in range(j + 1, 4):
+                        if board[j][i] == 0:
+                            break
+                        elif board[j + 1][i] == 0:
+                            continue
+                        elif board[j][i] == board[k][i]:
+                            f = True
+                            break
+                    if f: 
+                        count += board[i][j]
+            return count
 
     """------------------------------------------------------------------"""
 
