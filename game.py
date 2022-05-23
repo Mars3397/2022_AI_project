@@ -1,6 +1,3 @@
-from numpy import size
-
-
 class game: 
     def getLegalActions(self, board): 
         # get possible action for the current board

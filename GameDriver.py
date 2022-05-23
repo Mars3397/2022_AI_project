@@ -1,12 +1,15 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
-import numpy as np
-
+import expectimax
+import game
+from time import sleep
 class GameDriver:
     def __init__(self):
-        self.url = "https://gabrielecirulli.github.io/2048/"
-        self.driver = webdriver.Chrome()
+        self.url = "https://play2048.co/"
+        self.options = webdriver.ChromeOptions()
+        self.options.add_argument('--ignore-certificate-errors')
+        self.options.add_argument('--ignore-ssl-errors')
+        self.driver = webdriver.Chrome(chrome_options=self.options)
         self.driver.get(self.url)
         self.body = self.driver.find_element_by_tag_name('body')
         self.directions = {
@@ -15,6 +18,7 @@ class GameDriver:
             2: Keys.LEFT,
             3: Keys.RIGHT
         }
+        self.game = game.game()
         
     def getGrid(self):
         matrix = [
@@ -32,6 +36,15 @@ class GameDriver:
             if num > matrix[row][col]:
                 matrix[row][col] = num
         return matrix
-
-game = GameDriver()
-print(game.getGrid())
+    def play(self):
+        for _ in range(100):
+            print(self.getGrid())
+            action = expectimax.getAction(self.game, self.getGrid())
+            grid = self.driver.find_element_by_tag_name('body')
+            self.driver.find_element_by_class_name('grid-container').click()
+            grid.send_keys(self.directions[action])
+            sleep(0.1)
+            
+newGame = GameDriver()
+newGame.play()
+newGame.driver.close()
