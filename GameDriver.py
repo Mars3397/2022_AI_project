@@ -44,7 +44,8 @@ class GameDriver:
             self.driver.find_element_by_class_name('grid-container').click()
             grid.send_keys(self.directions[action])
             sleep(0.1)
-            
+# try:            
 newGame = GameDriver()
 newGame.play()
-newGame.driver.close()
+# except:
+    # newGame.driver.close()

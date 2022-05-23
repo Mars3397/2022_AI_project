@@ -37,9 +37,9 @@ def _expectimax(currentDepth, gameState, board, action, possibility):
 
 def expectimax(currentDepth, gameState, board, possibility):
     # return the evaluation value when reach the end state or the deepest depth
-    if gameState.isLose(board) or currentDepth > gameDepth:
-        evaluateBoard = [ row[:] for row in board ]
-        return evaluationFunction(gameState, evaluateBoard, action, possibility)
+    # if gameState.isLose(board) or currentDepth > gameDepth:
+    #     evaluateBoard = [ row[:] for row in board ]
+    #     return evaluationFunction(gameState, evaluateBoard, action, possibility)
 
     # store the following action scores of each actions 
     # -> apply max or min according to the agent of the level
@@ -69,7 +69,7 @@ def expectimax(currentDepth, gameState, board, possibility):
 def getAction(gameState, board):
     # get the following legal actions
     legalActions = gameState.getLegalActions(board)
-
+    print(legalActions)
     # expectimax (depth, gameState) -> perform expectimax Search
     # which return the scores of following actions
     actionScores = expectimax(1, gameState, board, 1)
