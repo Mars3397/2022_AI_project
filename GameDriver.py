@@ -33,11 +33,5 @@ class GameDriver:
                 matrix[row][col] = num
         return matrix
 
-    def play(self): 
-        for i in range(100):
-            self.body.send_keys(self.directions[i % 4])
-            print(np.array(self.getGrid()))
-            time.sleep(0.3)
-
 game = GameDriver()
-game.play()
+print(game.getGrid())
