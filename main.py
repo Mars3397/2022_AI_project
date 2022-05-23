@@ -3,13 +3,21 @@ import expectimax
 
 newGame = game()
 
-board = [   [1, 2, 2, 1], 
-            [1, 1, 2, 0], 
-            [2, 2, 2, 2], 
-            [3, 2, 3, 2]    ]
+board = [   [0, 0, 2, 0], 
+            [4, 2, 0, 0], 
+            [4, 4, 0, 0], 
+            [8, 8, 0, 0]    ]
 
-newGame.printBoard(board)
-print("--------")
+# newGame.printBoard(board)
+# print("--------")
 action = expectimax.getAction(newGame, board)
-print(action)
+if action == 0:
+    print("上")
+elif action == 1:
+    print("下")
+elif action == 2:
+    print("左")
+elif action == 3:
+    print("右")
+
 
