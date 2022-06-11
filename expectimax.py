@@ -1,107 +1,91 @@
-import random
+import numpy as np
+from Game import Game
+from copy import deepcopy
 
-from game import game
+class Expectimax:
+    def __init__(self):
+        self.weight = [
+            [0.135759, 0.121925, 0.102812, 0.099937],
+            [0.0997992, 0.0888405,  0.076711, 0.0724143],
+            [0.060654, 0.0562579, 0.037116, 0.0161889],
+            [0.0125498, 0.00992495, 0.00575871, 0.00335193]
+        ]
+        # self.weight = [
+        #     [7, 6, 5, 4],
+        #     [6, 5, 4, 3],
+        #     [5, 4, 3, 2],
+        #     [4, 3, 2, 1]
+        # ]
+        self.agent = Game()
+        self.newTileList = [2, 4]
+        self.newTileProb = [0.9, 0.1]
 
-gameDepth = 2
+    def print_weight(self):
+        print(np.array(self.weight))
 
-def _expectimax(currentDepth, gameState, board, action, possibility):
-    # return the evaluation value when reach the end state or the deepest depth
-    if gameState.isLose(board) or currentDepth > gameDepth:
-        evaluateBoard = [ row[:] for row in board ]
-        return evaluationFunction(gameState, evaluateBoard, action, possibility)
+    def compute_terminal_score(self, board):
+        score0, score1, score2, score3 = 0, 0, 0, 0
+        tscore0, tscore1, tscore2, tscore3 = 0, 0, 0, 0
+        for r in range(4):
+            for c in range(4):
+                score0 += board[r][c] * self.weight[r][c]
+                score1 += board[r][c] * self.weight[3 - c][r]
+                score2 += board[r][c] * self.weight[3 - r][3 - c]
+                score3 += board[r][c] * self.weight[c][3 - r]
 
-    # store the following action scores of each actions 
-    # -> apply max or min according to the agent of the level
-    actionScores = []
-    # get and store legal actions
-    legalActions = gameState.getLegalActions(board)
+                tscore0 += board[r][c] * self.weight[c][r]
+                tscore1 += board[r][c] * self.weight[r][3 - c]
+                tscore2 += board[r][c] * self.weight[3 - c][3 - r]
+                tscore3 += board[r][c] * self.weight[3 - r][c]
 
-    for a in legalActions:
-        # extend the actions to the next state
-        possibleStates = gameState.getPossibleStates(board, a)
-        each = []
-        for possibleState in possibleStates:
-            nextState = [ row[:] for row in possibleState[0] ]
-            each.append(_expectimax(currentDepth + 1, gameState, nextState, a, possibleState[1]))
-        actionScores.append(max(each))
-        # nextBoard = gameState.generateNextState(board, action)
-        # actionScores.append(expectimax(currentDepth + 1, gameState, nextBoard))
-
-
-    # return max action score
-    if currentDepth == 1:
-        return actionScores
-    else:
-        return max(actionScores)
-        # return float(sum(actionScores) / len(actionScores))
-
-def expectimax(currentDepth, gameState, board, possibility):
-    # return the evaluation value when reach the end state or the deepest depth
-    # if gameState.isLose(board) or currentDepth > gameDepth:
-    #     evaluateBoard = [ row[:] for row in board ]
-    #     return evaluationFunction(gameState, evaluateBoard, action, possibility)
-
-    # store the following action scores of each actions 
-    # -> apply max or min according to the agent of the level
-    actionScores = []
-    # get and store legal actions
-    legalActions = gameState.getLegalActions(board)
-
-    for action in legalActions:
-        # extend the actions to the next state
-        possibleStates = gameState.getPossibleStates(board, action)
-        each = []
-        for possibleState in possibleStates:
-            nextState = [ row[:] for row in possibleState[0] ]
-            each.append(_expectimax(currentDepth + 1, gameState, nextState, action, possibleState[1]))
-        actionScores.append(max(each))
-        # nextBoard = gameState.generateNextState(board, action)
-        # actionScores.append(expectimax(currentDepth + 1, gameState, nextBoard))
+        return max(score0, score1, score2, score3, tscore0, tscore1, tscore2, tscore3)
 
 
-    # return max action score
-    if currentDepth == 1:
-        return actionScores
-    else:
-        return max(actionScores)
-        # return float(sum(actionScores) / len(actionScores))
+    def compute_score(self, board, depth):
+        if depth == 0:
+            return self.compute_terminal_score(board)
+        else:
+            totalScore = 0
+            totalProb = 0
+            for r in range(4):
+                for c in range(4):
+                    if board[r][c] == 0:
+                        for i in range(2):
+                            next_board = deepcopy(board)
+                            next_board[r][c] = self.newTileList[i]
+                            bestScore = 0
+                            bestDirection = -1
+                            for d in range(4):
+                                next_board_moved = deepcopy(next_board)
+                                self.agent.move(next_board_moved, d)
+                                
+                                if next_board_moved != next_board:
+                                    score = self.compute_score(next_board_moved, depth-1)
+                                    if score > bestScore:
+                                        bestScore = score
+                                        bestDirection = d
+                                else:
+                                    break
+                            if bestDirection != -1:
+                                totalScore += self.newTileProb[i] * bestScore
+                            else:
+                                totalScore += self.newTileProb[i] * self.compute_terminal_score(next_board)       
+                            totalProb += self.newTileProb[i]
+            return totalScore / totalProb
+
+    def get_next_action(self, board, depth):
+        bestScore = 0
+        bestDirection = -1
+        for d in range(4):
+            moved = deepcopy(board)
             
-def getAction(gameState, board):
-    # get the following legal actions
-    legalActions = gameState.getLegalActions(board)
-    print(legalActions)
-    # expectimax (depth, gameState) -> perform expectimax Search
-    # which return the scores of following actions
-    actionScores = expectimax(1, gameState, board, 1)
-    print(actionScores)
-
-    # Pick randomly among the best action score
-    maxActionScore = max(actionScores)
-    bestIndices = [index for index in range(len(actionScores)) 
-                    if actionScores[index] == maxActionScore]
-    chosenIndex = random.choice(bestIndices)
-
-    return legalActions[chosenIndex]
-
-def evaluationFunction (gameState, board, action, possibility): 
-    """
-    bonus : 
-        1. "empty squres"
-        2. "having large values on the edge"
-        3. "counted the number of potential merges"
-        4. "having monotonic rows and columns"
-    """
-
-    """
-    90% will generate 2, 10% will generate 4
-    每一次移動產生的新數字，會在空格的空格隨機產生，所以就會有期望值
-    """
-    nextBoard = gameState.generateNextState(board, action)
-    countEmpty = gameState.countEmpty(nextBoard) - gameState.countEmpty(board)
-    countEdges = gameState.countEdges(nextBoard) - gameState.countEdges(board)
-    countMerges = gameState.countMergeScore(board, action)
-    countMonotonic = gameState.countMonotonic(nextBoard) - gameState.countMonotonic(board)
-
-    evaluateValue = (countEmpty + countEdges + countMerges + countMonotonic)
-
-    return evaluateValue
+            self.agent.move(moved, d)
+            if moved != board:
+                score = self.compute_score(moved, depth)
+                if score > bestScore:
+                    bestScore = score
+                    bestDirection = d
+            else:
+                score = 0
+        print(bestDirection)
+        return bestDirection
