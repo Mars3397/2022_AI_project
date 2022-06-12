@@ -1,5 +1,5 @@
 import numpy as np
-from Game import Game
+from Expectimax_Game import Expectimax_Game
 from copy import deepcopy
 
 class Expectimax:
@@ -10,13 +10,7 @@ class Expectimax:
             [0.060654, 0.0562579, 0.037116, 0.0161889],
             [0.0125498, 0.00992495, 0.00575871, 0.00335193]
         ]
-        # self.weight = [
-        #     [7, 6, 5, 4],
-        #     [6, 5, 4, 3],
-        #     [5, 4, 3, 2],
-        #     [4, 3, 2, 1]
-        # ]
-        self.agent = Game()
+        self.agent = Expectimax_Game()
         self.newTileList = [2, 4]
         self.newTileProb = [0.9, 0.1]
 

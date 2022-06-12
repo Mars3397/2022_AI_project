@@ -1,7 +1,6 @@
-import random
 import numpy as np
 
-class Game:
+class Expectimax_Game:
     def __init__(self):
         self.board = [
             [0, 0, 0, 0],
@@ -9,7 +8,6 @@ class Game:
             [0, 0, 0, 0],
             [0, 0, 0, 0]
         ]
-        self.prob = 0.9
 
     def move_line(self, cell):
         target = 0
@@ -28,6 +26,7 @@ class Game:
                         cell[i] = 0
                         cell[target + 1] = current_value
                     target += 1
+        return 
 
     def move_up(self, board):
         for c in range(4):
@@ -37,7 +36,8 @@ class Game:
             self.move_line(cell)
             for r in range(4):
                 board[r][c] = cell[r]
-            
+        return 
+
     def move_down(self, board):
         for c in range(4):
             cell = []
@@ -46,6 +46,7 @@ class Game:
             self.move_line(cell)
             for r in range(4):
                 board[3-r][c] = cell[r]
+        return 
 
     def move_left(self, board):
         for r in range(4):
@@ -55,6 +56,7 @@ class Game:
             self.move_line(cell)
             for c in range(4):
                 board[r][c] = cell[c]
+        return 
 
     def move_right(self, board):
         for r in range(4):
@@ -64,7 +66,8 @@ class Game:
             self.move_line(cell)
             for c in range(4):
                 board[r][3-c] = cell[c]
-    
+        return
+        
     def move(self, board, action):
         if action == 0:
             self.move_up(board)
