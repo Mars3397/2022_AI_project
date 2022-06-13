@@ -30,5 +30,8 @@ class MonteCarloTreeSearch:
                         search_board = self.agent.add_new_tile(search_board)
                         scores[i] += search_score
                         move_number += 1
-        best_action = np.argmax(scores)
+        if scores[0] == scores[1] == scores[2] == scores[3]:
+            best_action = -1
+        else:
+            best_action = np.argmax(scores)
         return best_action
